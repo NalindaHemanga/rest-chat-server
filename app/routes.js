@@ -63,7 +63,7 @@ module.exports = function(app) {
             const token = jwt.sign(user, config.secret, {
               expiresIn: 10080 // in seconds
             });
-            res.status(200).json({ success: true, token: 'JWT ' + token });
+            res.status(200).json({ success: true, token: 'JWT ' + token, user: user });
           } else {
             res.status(401).json({ success: false, message: 'Authentication failed. Passwords did not match.' });
           }
@@ -71,6 +71,24 @@ module.exports = function(app) {
       }
     });
   });
+
+ 
+// Add user to mobile by checking availability of email address
+  apiRoutes.post('/checkuser', function(req, res) {
+    User.findOne({
+      email: req.body.email
+    }, function(err, user) {
+      if (err) throw err;
+
+      if (!user) {
+        res.status(200).json({ success: false, message: 'User not found.',userID: null });
+      } else {
+	      res.status(200).json({ success: true, message: 'User found.',userID: user._id });
+      }
+    });
+  });
+
+
 
   // Protect chat routes with JWT
   // GET messages for authenticated user
