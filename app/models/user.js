@@ -3,6 +3,16 @@ const bcrypt = require('bcrypt');
 
 // Schema defines how the user's data will be stored in MongoDB
 const UserSchema = new mongoose.Schema({
+  fname: {
+    type: String,
+    unique: false,
+    required: true
+  },
+  lname: {
+    type: String,
+    unique: false,
+    required: true
+  },
   email: {
     type: String,
     lowercase: true,

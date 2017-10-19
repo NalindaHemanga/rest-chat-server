@@ -13,6 +13,11 @@ const ChatSchema = new mongoose.Schema({
   message_body: {
     type: String,
     required: true
+  },
+  status: {
+    type: String,
+    enum: ['sent', 'delivered', 'seen'],
+    default: 'sent'
   }
 },
 {

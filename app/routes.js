@@ -26,12 +26,13 @@ module.exports = function(app) {
 
   // Register new users
   apiRoutes.post('/register', function(req, res) {
-    console.log('in register');
-    console.log(req.body);
-    if(!req.body.email || !req.body.password) {
+    
+    if(!req.body.fname || !req.body.lname || !req.body.email || !req.body.password) {
       res.status(400).json({ success: false, message: 'Please enter email and password.' });
     } else {
       const newUser = new User({
+        fname: req.body.fname,
+        lname: req.body.lname,
         email: req.body.email,
         password: req.body.password
       });
@@ -60,9 +61,9 @@ module.exports = function(app) {
         user.comparePassword(req.body.password, function(err, isMatch) {
           if (isMatch && !err) {
             // Create token if the password matched and no error was thrown
-            const token = jwt.sign(user, config.secret, {
+            const token = jwt.sign(user, config.secret/*, {
               expiresIn: 10080 // in seconds
-            });
+            }*/);
             res.status(200).json({ success: true, token: 'JWT ' + token, user: user });
           } else {
             res.status(401).json({ success: false, message: 'Authentication failed. Passwords did not match.' });
@@ -72,18 +73,17 @@ module.exports = function(app) {
     });
   });
 
- 
-// Add user to mobile by checking availability of email address
-  apiRoutes.post('/checkuser', function(req, res) {
+  // Search user using email address
+  apiRoutes.get('/user/:email',requireAuth,function(req, res) {
     User.findOne({
-      email: req.body.email
+      email: req.params.email
     }, function(err, user) {
       if (err) throw err;
 
       if (!user) {
-        res.status(200).json({ success: false, message: 'User not found.',userID: null });
+        res.status(200).json({ success: false, message: 'User not found.', user: null });
       } else {
-	      res.status(200).json({ success: true, message: 'User found.',userID: user._id });
+        res.status(200).json({ success: true, message: 'User found.', user : user });
       }
     });
   });
