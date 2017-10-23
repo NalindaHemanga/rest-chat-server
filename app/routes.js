@@ -92,12 +92,12 @@ module.exports = function(app) {
 
   // Protect chat routes with JWT
   // GET messages for authenticated user
-  apiRoutes.get('/chat', requireAuth, function(req, res) {
-    Chat.find({$or : [{'to': req.user._id}, {'from': req.user._id}]}, function(err, messages) {
+  apiRoutes.get('/chat/:user_id', requireAuth, function(req, res) {
+    Chat.find({$or : [{$and : [{'to': req.params.user_id}, {'from': req.user._id}]},{$and : [{'to': req.user._id}, {'from': req.params.user_id}]}]},null,{sort:{createdAt : 1}}, function(err, messages) {
       if (err)
         res.status(400).send(err);
 
-      res.status(400).json(messages);
+      res.status(200).json( { messages : messages });
     });
   });
 
