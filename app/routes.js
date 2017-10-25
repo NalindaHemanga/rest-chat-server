@@ -93,13 +93,32 @@ module.exports = function(app) {
   // Protect chat routes with JWT
   // GET messages for authenticated user
   apiRoutes.get('/chat/:user_id', requireAuth, function(req, res) {
-    Chat.find({$or : [{$and : [{'to': req.params.user_id}, {'from': req.user._id}]},{$and : [{'to': req.user._id}, {'from': req.params.user_id}]}]},null,{sort:{createdAt : 1}}, function(err, messages) {
+    Chat.find({$or : [{$and : [{'to': req.params.user_id}, {'from': req.user._id},{'status':'delivered'}]},{$and : [{'to': req.user._id}, {'from': req.params.user_id},{'status':'delivered'}]}]},null,{sort:{createdAt : 1}}, function(err, messages) {
       if (err)
         res.status(400).send(err);
 
       res.status(200).json( { messages : messages });
     });
   });
+
+  apiRoutes.get('/chat/one/:user_id', requireAuth, function(req, res) {
+    Chat.find({$and : [{'to': req.user._id}, {'from': req.params.user_id},{'status':'sent'}]},null,{sort:{createdAt : 1}}, function(err, messages) {
+      if (err)
+        res.status(400).send(err);
+      messages.forEach(function(message){
+        message.status = 'delivered';
+        message.save(function(err) {
+            // if (err)
+            //     res.status(400).send(err);
+
+            // res.status(201).json({ message: 'Message sent!' });
+        });
+      })
+      res.status(200).json( { messages : messages });
+    });
+  });
+
+
 
   // POST to create a new message from the authenticated user
   apiRoutes.post('/chat', requireAuth, function(req, res) {
