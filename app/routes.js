@@ -88,10 +88,25 @@ module.exports = function(app) {
     });
   });
 
+  // Search user using user id
+  apiRoutes.get('/user/id/:user_id',requireAuth,function(req, res) {
+    User.findOne({
+      _id: req.params.user_id
+    }, function(err, user) {
+      if (err) throw err;
+
+      if (!user) {
+        res.status(200).json({ success: false, message: 'User not found.', user: null });
+      } else {
+        res.status(200).json({ success: true, message: 'User found.', user : user });
+      }
+    });
+  });
+
 
 
   // Protect chat routes with JWT
-  // GET messages for authenticated user
+  // GET all seen messages for authenticated user from specific user
   apiRoutes.get('/chat/:user_id', requireAuth, function(req, res) {
     Chat.find({$or : [{$and : [{'to': req.params.user_id}, {'from': req.user._id},{'status':'delivered'}]},{$and : [{'to': req.user._id}, {'from': req.params.user_id},{'status':'delivered'}]}]},null,{sort:{createdAt : 1}}, function(err, messages) {
       if (err)
@@ -101,6 +116,8 @@ module.exports = function(app) {
     });
   });
 
+
+  // GET un-delivered messages from specific user 
   apiRoutes.get('/chat/one/:user_id', requireAuth, function(req, res) {
     Chat.find({$and : [{'to': req.user._id}, {'from': req.params.user_id},{'status':'sent'}]},null,{sort:{createdAt : 1}}, function(err, messages) {
       if (err)
@@ -117,6 +134,18 @@ module.exports = function(app) {
       res.status(200).json( { messages : messages });
     });
   });
+
+  // GET un-delivered/sent messages from all the users 
+  apiRoutes.get('/chat/all/:status', requireAuth, function(req, res) {
+    
+    Chat.find({$and : [{'to': req.user._id}, {'status': req.params.status}]},null,{sort:{createdAt : 1}}, function(err, messages) {
+      
+      if (err) 
+        res.status(400).send(err);
+      res.status(200).json({ messages : messages });
+    });
+
+  })
 
 
 
